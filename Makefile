@@ -6,6 +6,9 @@ all: test
 %.o: %.F90
 	$(FC) $(FFLAGS) -c $^ -o $@
 
+%.x: %.o
+	$(FC) $(FFLAGS) $^ -o $@
+
 #gb.mod: gb.F90
 #	$(FC) $(FFLAGS) -c $<
 
