@@ -1,5 +1,5 @@
 FC=mpifort
-FFLAGS=-Mfree 
+FFLAGS=-std=f2018
 
 all: test
 
