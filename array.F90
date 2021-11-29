@@ -18,11 +18,19 @@ module m
         class(*), dimension(..) :: buffer
         print*,'E',shape(buffer)
     end subroutine
+
+    subroutine pr2(buffer)
+        implicit none
+        integer, dimension(:,:) :: buffer
+        print*,'F',buffer(1,1)
+    end subroutine
 end module
 
 program p
     use m
     integer, dimension(-10:-5, -10:-5) :: a
+    a = 77
     call foo(a)
     call bar(a)
+    call pr2(a)
 end program
