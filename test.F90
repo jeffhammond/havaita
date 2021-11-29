@@ -1,0 +1,22 @@
+program test
+  use gb
+  implicit none
+  integer :: me, np
+
+  call MPI_Init()
+  call MPI_Comm_rank(MPI_COMM_WORLD,me)
+  call MPI_Comm_size(MPI_COMM_WORLD,np)
+  write(*,'(a11,i3,a4,i3)') 'Hello from ',me,' of ',np
+  call MPI_Barrier(MPI_COMM_WORLD)
+
+  block
+    real(kind=REAL64) :: a(100)
+    real(kind=REAL64) :: b(10,10)
+    call gb_bcast(a,0,MPI_COMM_WORLD)
+    call MPI_Barrier(MPI_COMM_WORLD)
+    call gb_bcast(b,0,MPI_COMM_WORLD)
+  end block
+
+  call MPI_Finalize()
+
+end program

@@ -46,10 +46,15 @@ module gb
             TYPE(MPI_Comm), INTENT(IN) :: comm
             INTEGER, OPTIONAL, INTENT(OUT) :: ierror
 
-            integer :: count
+            integer :: count, ndim, dims(15)
             TYPE(MPI_Datatype), parameter :: datatype = MPI_DOUBLE_PRECISION
             count = size(buffer)
             write(*,'(a34,i14)') 'gb_bcast_r64_inferred with count=',count
+            ndim = size(shape(buffer))
+            dims(1:ndim) = shape(buffer)
+            write(*,'(a33,i14)') 'gb_bcast_r64_inferred with ndim=',ndim
+            print*,'gb_bcast_r64_inferred with shape=',shape(buffer)
+
             
             if (present(ierror)) then
                 call mpi_bcast(buffer, count, datatype, root, comm, ierror)
