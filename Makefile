@@ -1,16 +1,16 @@
 FC=mpifort
-FFLAGS=-std=f2018 -Wall
+FFLAGS=-Mfree 
 
 all: test
+
+%.o: %.F90
+	$(FC) $(FFLAGS) -c $^ -o $@
 
 #gb.mod: gb.F90
 #	$(FC) $(FFLAGS) -c $<
 
 gb.o: gb.F90
 	$(FC) $(FFLAGS) -c $<
-
-pgi: pgi.F90
-	$(FC) $(FFLAGS) $^ -o $@
 
 fortran: fortran.F90
 	$(FC) $(FFLAGS) $^ -o $@
