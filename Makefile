@@ -1,5 +1,5 @@
 FC=mpifort
-FFLAGS=-std=f2008 -Wall
+FFLAGS=-std=f2018 -Wall
 
 all: gb.mod
 
