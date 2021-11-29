@@ -9,8 +9,14 @@ all: test
 gb.o: gb.F90
 	$(FC) $(FFLAGS) -c $<
 
+pgi: pgi.F90
+	$(FC) $(FFLAGS) $^ -o $@
+
+fortran: fortran.F90
+	$(FC) $(FFLAGS) $^ -o $@
+
 test: test.F90 gb.o
-	$(FC) $(FFLAGS) $^ -o test
+	$(FC) $(FFLAGS) $^ -o $@
 
 clean:
 	-rm -f gb.o

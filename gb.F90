@@ -45,13 +45,41 @@ module gb
             INTEGER, INTENT(IN) :: root
             TYPE(MPI_Comm), INTENT(IN) :: comm
             INTEGER, OPTIONAL, INTENT(OUT) :: ierror
-            if (.not.is_contiguous(buffer)) then
-                write(ERROR_UNIT,'(a59)') 'Galaxy Brain Failed: only contigous buffers are supported!'
-                if (present(ierror)) then
-                    ierror = MPI_ERR_BUFFER
-                    return
-                else
-                    call MPI_Abort(MPI_COMM_WORLD,size(shape(buffer)))
+            if (.not.MPI_SUBARRAYS_SUPPORTED) then
+                if (.not.is_contiguous(buffer)) then
+                    write(ERROR_UNIT,'(a59)') 'Galaxy Brain Failed: only contigous buffers are supported!'
+                    if (present(ierror)) then
+                        ierror = MPI_ERR_BUFFER
+                        return
+                    else
+                        call MPI_Abort(MPI_COMM_WORLD,size(buffer))
+                        STOP
+                    endif
+                endif
+            endif
+            if (present(ierror)) then
+                call MPI_Bcast(buffer, size(buffer), MPI_DOUBLE_PRECISION, root, comm, ierror)
+            else
+                call MPI_Bcast(buffer, size(buffer), MPI_DOUBLE_PRECISION, root, comm)
+            endif
+        end subroutine
+
+        subroutine gb_bcast_r64_inferred(buffer, root, comm, ierror)
+            use mpi_f08
+            real(kind=REAL64), DIMENSION(..) :: buffer
+            INTEGER, INTENT(IN) :: root
+            TYPE(MPI_Comm), INTENT(IN) :: comm
+            INTEGER, OPTIONAL, INTENT(OUT) :: ierror
+            if (.not.MPI_SUBARRAYS_SUPPORTED) then
+                if (.not.is_contiguous(buffer)) then
+                    write(ERROR_UNIT,'(a59)') 'Galaxy Brain Failed: only contigous buffers are supported!'
+                    if (present(ierror)) then
+                        ierror = MPI_ERR_BUFFER
+                        return
+                    else
+                        call MPI_Abort(MPI_COMM_WORLD,size(buffer))
+                        STOP
+                    endif
                 endif
             endif
             if (present(ierror)) then
