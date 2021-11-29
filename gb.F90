@@ -5,7 +5,7 @@ module gb
 
     interface gb_bcast
         module procedure gb_bcast_standard
-        module procedure gb_bcast_r64_inferred
+        module procedure gb_bcast_inferred
     end interface
 
     contains
@@ -63,22 +63,51 @@ module gb
             use mpi_f08
             class(*), DIMENSION(..) :: buffer
             type(MPI_Datatype) :: datatype
+            ! what happens here if the array bounds are e.g. [-10:-5]?
             select rank (buffer)
                 rank(0)
                     datatype = get_mpi_datatype(buffer)
                 rank(1)
                     datatype = get_mpi_datatype(buffer(1))
+                rank(2)
+                    datatype = get_mpi_datatype(buffer(1,1))
+                rank(3)
+                    datatype = get_mpi_datatype(buffer(1,1,1))
+                rank(4)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1))
+                rank(5)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1))
+                rank(6)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1))
+                rank(7)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1))
+                rank(8)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1))
+                rank(9)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1))
+                rank(10)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1))
+                rank(11)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1))
+                rank(12)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1))
+                rank(13)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1))
+                rank(14)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1,1))
+                rank(15)
+                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
             end select
         end function
 
         ! MPI standard direct wrapper
         subroutine gb_bcast_standard(buffer, count, datatype, root, comm, ierror)
             use mpi_f08
-            TYPE(*), DIMENSION(..) :: buffer
-            INTEGER, INTENT(IN) :: count, root
-            TYPE(MPI_Datatype), INTENT(IN) :: datatype
-            TYPE(MPI_Comm), INTENT(IN) :: comm
-            INTEGER, OPTIONAL, INTENT(OUT) :: ierror
+            type(*), dimension(..) :: buffer
+            integer, intent(in) :: count, root
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
             if (present(ierror)) then
                 call mpi_bcast(buffer, count, datatype, root, comm, ierror)
             else
@@ -86,13 +115,12 @@ module gb
             endif
         end subroutine
 
-        subroutine gb_bcast_r64_inferred(buffer, root, comm, ierror)
+        subroutine gb_bcast_inferred(buffer, root, comm, ierror)
             use mpi_f08
-            TYPE(*), DIMENSION(..) :: buffer
-            INTEGER, INTENT(IN) :: root
-            TYPE(MPI_Comm), INTENT(IN) :: comm
-            INTEGER, OPTIONAL, INTENT(OUT) :: ierror
-            TYPE(MPI_Datatype) :: dt
+            class(*), dimension(..) :: buffer
+            integer, intent(in), optional :: root
+            type(MPI_Comm), intent(in), optional :: comm
+            integer, optional, intent(out) :: ierror
             if (.not.MPI_SUBARRAYS_SUPPORTED) then
                 if (.not.is_contiguous(buffer)) then
                     write(ERROR_UNIT,'(a59)') 'Galaxy Brain Failed: only contigous buffers are supported!'
@@ -105,11 +133,27 @@ module gb
                     endif
                 endif
             endif
-            if (present(ierror)) then
-                call MPI_Bcast(buffer, size(buffer), MPI_DOUBLE_PRECISION, root, comm, ierror)
-            else
-                call MPI_Bcast(buffer, size(buffer), MPI_DOUBLE_PRECISION, root, comm)
-            endif
+            block
+                integer :: xroot
+                type(MPI_Comm) :: xcomm
+                type(MPI_Datatype) :: dt
+                if (present(comm)) then
+                    xcomm = comm
+                else
+                    xcomm = MPI_COMM_WORLD
+                endif
+                if (present(root)) then
+                    xroot = root
+                else
+                    xroot = 0
+                endif
+                dt = get_mpi_datatype_array(buffer)
+                if (present(ierror)) then
+                    call MPI_Bcast(buffer, size(buffer), dt, xroot, xcomm, ierror)
+                else
+                    call MPI_Bcast(buffer, size(buffer), dt, xroot, xcomm)
+                endif
+            end block
         end subroutine
 
-end module gb
+    end module gb
