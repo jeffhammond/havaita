@@ -8,6 +8,11 @@ module gb
         module procedure gb_bcast_inferred
     end interface
 
+    interface gb_send
+        module procedure gb_send_standard
+        module procedure gb_send_inferred
+    end interface
+
     interface gb_sendrecv
         module procedure gb_sendrecv_standard
         module procedure gb_sendrecv_inferred
@@ -236,6 +241,102 @@ module gb
                     call mpi_sendrecv(sendbuf, size(sendbuf), sendtype, dest, sendtag,      &
                                       recvbuf, size(recvbuf), recvtype, source, recvtag,    &
                                       xcomm, xstatus)
+                endif
+            end block
+        end subroutine
+
+        ! MPI standard direct wrapper
+        subroutine gb_send_standard(buf, count, datatype, dest, tag, comm, status, ierror)
+            use mpi_f08
+            type(*), dimension(..), intent(in) :: buf
+            integer, intent(in) :: count, dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status) :: status
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call mpi_send(buf, count, datatype, dest, tag, comm, ierror)
+            else
+                call mpi_send(buf, count, datatype, dest, tag, comm)
+            endif
+        end subroutine
+
+        subroutine gb_send_inferred(buf, dest, tag, comm, status, ierror)
+            use mpi_f08
+            class(*), dimension(..), intent(in) :: buf
+            integer, intent(in) :: dest, tag
+            type(MPI_Comm), intent(in), optional :: comm
+            type(MPI_Status), optional :: status
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call contiguous_buffer_check(buf,ierror)
+            else
+                call contiguous_buffer_check(buf)
+            endif
+            block
+                type(MPI_Comm) :: xcomm
+                type(MPI_Datatype) :: datatype
+                if (present(comm)) then
+                    xcomm = comm
+                else
+                    xcomm = MPI_COMM_WORLD
+                endif
+                datatype = get_mpi_datatype_array(buf)
+                if (present(ierror)) then
+                    call mpi_send(buf, size(buf), datatype, dest, tag, xcomm, ierror)
+                else
+                    call mpi_send(buf, size(buf), datatype, dest, tag, xcomm)
+                endif
+            end block
+        end subroutine
+
+        ! MPI standard direct wrapper
+        subroutine gb_recv_standard(buf, count, datatype, source, tag, comm, status, ierror)
+            use mpi_f08
+            type(*), dimension(..) :: buf
+            integer, intent(in) :: count, source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status) :: status
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call mpi_recv(buf, count, datatype, source, tag, comm, status, ierror)
+            else
+                call mpi_recv(buf, count, datatype, source, tag, comm, status)
+            endif
+        end subroutine
+
+        subroutine gb_recv_inferred(buf, source, tag, comm, status, ierror)
+            use mpi_f08
+            class(*), dimension(..) :: buf
+            integer, intent(in) :: source, tag
+            type(MPI_Comm), intent(in), optional :: comm
+            type(MPI_Status), optional :: status
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call contiguous_buffer_check(buf,ierror)
+            else
+                call contiguous_buffer_check(buf)
+            endif
+            block
+                type(MPI_Comm) :: xcomm
+                type(MPI_Status) :: xstatus
+                type(MPI_Datatype) :: datatype
+                if (present(comm)) then
+                    xcomm = comm
+                else
+                    xcomm = MPI_COMM_WORLD
+                endif
+                if (present(status)) then
+                    xstatus = status
+                else
+                    xstatus = MPI_STATUS_IGNORE
+                endif
+                datatype = get_mpi_datatype_array(buf)
+                if (present(ierror)) then
+                    call mpi_recv(buf, size(buf), datatype, source, tag, xcomm, xstatus, ierror)
+                else
+                    call mpi_recv(buf, size(buf), datatype, source, tag, xcomm, xstatus)
                 endif
             end block
         end subroutine
