@@ -11,22 +11,55 @@ program test
   call MPI_Barrier(world)
 
   block
-    real(kind=REAL64) :: a(100)
-    real(kind=REAL64) :: b(10,10)
+    real(kind=REAL64) :: a1(100)
+    real(kind=REAL64) :: a2(10,10)
+    real(kind=REAL64) :: a3(5,5,5)
     integer :: ierr
 
-    call gb_bcast(buffer=a,root=0,comm=world)
-    call gb_bcast(buffer=a,root=0)
-    call gb_bcast(buffer=a,comm=world)
-    call gb_bcast(buffer=a)
+    ! 1D
+    a1 = me
+    call gb_bcast(buffer=a1,root=0,comm=world)
+    if (any(a1 .ne. 0.0d0)) STOP
+    a1 = me
+    call gb_bcast(buffer=a1,root=0)
+    if (any(a1 .ne. 0.0d0)) STOP
+    a1 = me
+    call gb_bcast(buffer=a1,comm=world)
+    if (any(a1 .ne. 0.0d0)) STOP
+    a1 = me
+    call gb_bcast(buffer=a1)
+    if (any(a1 .ne. 0.0d0)) STOP
 
-    call gb_bcast(buffer=b,root=0,comm=world)
-    call gb_bcast(buffer=b,root=0)
-    call gb_bcast(buffer=b,comm=world)
-    call gb_bcast(buffer=b)
+    ! 2D
+    a2 = me
+    call gb_bcast(buffer=a2,root=0,comm=world)
+    if (any(a2 .ne. 0.0d0)) STOP
+    a2 = me
+    call gb_bcast(buffer=a2,root=0)
+    if (any(a2 .ne. 0.0d0)) STOP
+    a2 = me
+    call gb_bcast(buffer=a2,comm=world)
+    if (any(a2 .ne. 0.0d0)) STOP
+    a2 = me
+    call gb_bcast(buffer=a2)
+    if (any(a2 .ne. 0.0d0)) STOP
+
+    ! 3D
+    a3 = -me
+    call gb_bcast(buffer=a3,root=0,comm=world)
+    if (any(a3 .ne. 0.0d0)) STOP
+    a3 = -me
+    call gb_bcast(buffer=a3,root=0)
+    if (any(a3 .ne. 0.0d0)) STOP
+    a3 = -me
+    call gb_bcast(buffer=a3,comm=world)
+    if (any(a3 .ne. 0.0d0)) STOP
+    a3 = -me
+    call gb_bcast(buffer=a3)
+    if (any(a3 .ne. 0.0d0)) STOP
 
     call MPI_Barrier(world)
-    call gb_bcast(b(1:5,1:5),0,world,ierr)
+    call gb_bcast(a2(1:5,1:5),0,world,ierr)
     write(*,*) 'gb_bcast XFAIL',ierr
   end block
 
