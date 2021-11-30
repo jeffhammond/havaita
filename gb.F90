@@ -8,14 +8,29 @@ module gb
         module procedure gb_bcast_inferred
     end interface
 
+    interface gb_sendrecv
+        module procedure gb_sendrecv_standard
+        module procedure gb_sendrecv_inferred
+    end interface
+
     interface gb_send
         module procedure gb_send_standard
         module procedure gb_send_inferred
     end interface
 
-    interface gb_sendrecv
-        module procedure gb_sendrecv_standard
-        module procedure gb_sendrecv_inferred
+    interface gb_recv
+        module procedure gb_recv_standard
+        module procedure gb_recv_inferred
+    end interface
+
+    interface gb_isend
+        module procedure gb_isend_standard
+        module procedure gb_isend_inferred
+    end interface
+
+    interface gb_irecv
+        module procedure gb_irecv_standard
+        module procedure gb_irecv_inferred
     end interface
 
     contains
@@ -77,7 +92,8 @@ module gb
                 ! OTHER types
                 type is ( logical )
                     datatype = MPI_LOGICAL
-                ! MPI types - overlaps with kind=INT32
+                ! character is omitted because i cannot make it work
+                ! MPI types - these overlap with integer types above
                 !type is ( integer(kind=MPI_ADDRESS_KIND) )
                 !    datatype = MPI_AINT
                 !type is ( integer(kind=MPI_OFFSET_KIND) )
@@ -91,7 +107,6 @@ module gb
             use mpi_f08
             class(*), DIMENSION(..) :: buffer
             type(MPI_Datatype) :: datatype
-            ! what happens here if the array bounds are e.g. [-10:-5]?
             select rank (buffer)
                 rank(0)
                     datatype = get_mpi_datatype(buffer)
@@ -246,13 +261,12 @@ module gb
         end subroutine
 
         ! MPI standard direct wrapper
-        subroutine gb_send_standard(buf, count, datatype, dest, tag, comm, status, ierror)
+        subroutine gb_send_standard(buf, count, datatype, dest, tag, comm, ierror)
             use mpi_f08
             type(*), dimension(..), intent(in) :: buf
             integer, intent(in) :: count, dest, tag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
-            type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             if (present(ierror)) then
                 call mpi_send(buf, count, datatype, dest, tag, comm, ierror)
@@ -261,12 +275,11 @@ module gb
             endif
         end subroutine
 
-        subroutine gb_send_inferred(buf, dest, tag, comm, status, ierror)
+        subroutine gb_send_inferred(buf, dest, tag, comm, ierror)
             use mpi_f08
             class(*), dimension(..), intent(in) :: buf
             integer, intent(in) :: dest, tag
             type(MPI_Comm), intent(in), optional :: comm
-            type(MPI_Status), optional :: status
             integer, optional, intent(out) :: ierror
             if (present(ierror)) then
                 call contiguous_buffer_check(buf,ierror)
@@ -337,6 +350,96 @@ module gb
                     call mpi_recv(buf, size(buf), datatype, source, tag, xcomm, xstatus, ierror)
                 else
                     call mpi_recv(buf, size(buf), datatype, source, tag, xcomm, xstatus)
+                endif
+            end block
+        end subroutine
+
+        ! MPI standard direct wrapper
+        subroutine gb_isend_standard(buf, count, datatype, dest, tag, comm, request, ierror)
+            use mpi_f08
+            type(*), dimension(..), asynchronous, intent(in) :: buf
+            integer, intent(in) :: count, dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call mpi_isend(buf, count, datatype, dest, tag, comm, request, ierror)
+            else
+                call mpi_isend(buf, count, datatype, dest, tag, comm, request)
+            endif
+        end subroutine
+
+        subroutine gb_isend_inferred(buf, dest, tag, comm, request, ierror)
+            use mpi_f08
+            class(*), dimension(..), intent(in) :: buf
+            integer, intent(in) :: dest, tag
+            type(MPI_Comm), intent(in), optional :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call contiguous_buffer_check(buf,ierror)
+            else
+                call contiguous_buffer_check(buf)
+            endif
+            block
+                type(MPI_Comm) :: xcomm
+                type(MPI_Datatype) :: datatype
+                if (present(comm)) then
+                    xcomm = comm
+                else
+                    xcomm = MPI_COMM_WORLD
+                endif
+                datatype = get_mpi_datatype_array(buf)
+                if (present(ierror)) then
+                    call mpi_isend(buf, size(buf), datatype, dest, tag, xcomm, request, ierror)
+                else
+                    call mpi_isend(buf, size(buf), datatype, dest, tag, xcomm, request)
+                endif
+            end block
+        end subroutine
+
+        ! MPI standard direct wrapper
+        subroutine gb_irecv_standard(buf, count, datatype, source, tag, comm, request, ierror)
+            use mpi_f08
+            type(*), dimension(..) :: buf
+            integer, intent(in) :: count, source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call mpi_irecv(buf, count, datatype, source, tag, comm, request, ierror)
+            else
+                call mpi_irecv(buf, count, datatype, source, tag, comm, request)
+            endif
+        end subroutine
+
+        subroutine gb_irecv_inferred(buf, source, tag, comm, request, ierror)
+            use mpi_f08
+            class(*), dimension(..) :: buf
+            integer, intent(in) :: source, tag
+            type(MPI_Comm), intent(in), optional :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call contiguous_buffer_check(buf,ierror)
+            else
+                call contiguous_buffer_check(buf)
+            endif
+            block
+                type(MPI_Comm) :: xcomm
+                type(MPI_Datatype) :: datatype
+                if (present(comm)) then
+                    xcomm = comm
+                else
+                    xcomm = MPI_COMM_WORLD
+                endif
+                datatype = get_mpi_datatype_array(buf)
+                if (present(ierror)) then
+                    call mpi_irecv(buf, size(buf), datatype, source, tag, xcomm, request, ierror)
+                else
+                    call mpi_irecv(buf, size(buf), datatype, source, tag, xcomm, request)
                 endif
             end block
         end subroutine
