@@ -15,6 +15,24 @@ module gb
 
     contains
 
+        subroutine contiguous_buffer_check(buffer,ierror)
+            use mpi_f08
+            class(*), DIMENSION(..), intent(in) :: buffer
+            integer, optional, intent(out) :: ierror
+            if (.not.MPI_SUBARRAYS_SUPPORTED) then
+                if (.not.is_contiguous(buffer)) then
+                    write(ERROR_UNIT,'(a59)') 'Galaxy Brain Failed: only contigous buffers are supported!'
+                    if (present(ierror)) then
+                        ierror = MPI_ERR_BUFFER
+                        return
+                    else
+                        call MPI_Abort(MPI_COMM_WORLD,size(buffer))
+                        stop
+                    endif
+                endif
+            endif
+        end subroutine
+
         function get_mpi_datatype(element) result(datatype)
             use mpi_f08
             class(*) :: element
@@ -126,17 +144,10 @@ module gb
             integer, intent(in), optional :: root
             type(MPI_Comm), intent(in), optional :: comm
             integer, optional, intent(out) :: ierror
-            if (.not.MPI_SUBARRAYS_SUPPORTED) then
-                if (.not.is_contiguous(buffer)) then
-                    write(ERROR_UNIT,'(a59)') 'Galaxy Brain Failed: only contigous buffers are supported!'
-                    if (present(ierror)) then
-                        ierror = MPI_ERR_BUFFER
-                        return
-                    else
-                        call MPI_Abort(MPI_COMM_WORLD,size(buffer))
-                        STOP
-                    endif
-                endif
+            if (present(ierror)) then
+                call contiguous_buffer_check(buffer,ierror)
+            else
+                call contiguous_buffer_check(buffer)
             endif
             block
                 integer :: xroot
@@ -162,8 +173,9 @@ module gb
         end subroutine
 
         ! MPI standard direct wrapper
-        subroutine gb_sendrecv_standard(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf,       &
-                                        recvcount, recvtype, source, recvtag, comm, status, ierror)
+        subroutine gb_sendrecv_standard(sendbuf, sendcount, sendtype, dest, sendtag,        &
+                                        recvbuf, recvcount, recvtype, source, recvtag,      &
+                                        comm, status, ierror)
             use mpi_f08
             type(*), dimension(..), intent(in) :: sendbuf
             type(*), dimension(..)             :: recvbuf
@@ -173,11 +185,13 @@ module gb
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             if (present(ierror)) then
-                call mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf,       &
-                                  recvcount, recvtype, source, recvtag, comm, status, ierror)
+                call mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag,      &
+                                  recvbuf, recvcount, recvtype, source, recvtag,    &
+                                  comm, status, ierror)
             else
-                call mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf,       &
-                                  recvcount, recvtype, source, recvtag, comm, status)
+                call mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag,      &
+                                  recvbuf, recvcount, recvtype, source, recvtag,    &
+                                  comm, status)
             endif
         end subroutine
 
@@ -191,6 +205,13 @@ module gb
             type(MPI_Comm), intent(in), optional :: comm
             type(MPI_Status), optional :: status
             integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                call contiguous_buffer_check(sendbuf,ierror)
+                call contiguous_buffer_check(recvbuf,ierror)
+            else
+                call contiguous_buffer_check(sendbuf)
+                call contiguous_buffer_check(recvbuf)
+            endif
             block
                 type(MPI_Comm) :: xcomm
                 type(MPI_Status) :: xstatus
