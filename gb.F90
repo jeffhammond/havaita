@@ -248,18 +248,22 @@ module gb
                 type(MPI_Status) :: xstatus
                 integer :: count
                 type(MPI_Datatype) :: datatype
+                count = size(recvbuf)
+                datatype = get_mpi_datatype_array(recvbuf)
                 if (present(op)) then
                     xop = op
                 else
-                    xop = MPI_SUM
+                    if (datatype.eq.MPI_LOGICAL) then
+                        xop = MPI_LAND
+                    else
+                        xop = MPI_SUM
+                    endif
                 endif
                 if (present(comm)) then
                     xcomm = comm
                 else
                     xcomm = MPI_COMM_WORLD
                 endif
-                count = size(recvbuf)
-                datatype = get_mpi_datatype_array(recvbuf)
                 if (present(root)) then
                     if (present(ierror)) then
                         if (present(sendbuf)) then
@@ -274,7 +278,7 @@ module gb
                             call mpi_reduce(MPI_IN_PLACE, recvbuf, count, datatype, op, root, comm)
                         endif
                     endif
-                else
+                else ! no root => allreduce
                     if (present(ierror)) then
                         if (present(sendbuf)) then
                             call mpi_allreduce(sendbuf, recvbuf, count, datatype, op, comm, ierror)
@@ -472,7 +476,7 @@ module gb
 
         subroutine gb_isend_inferred(buf, dest, tag, comm, request, ierror)
             use mpi_f08
-            class(*), dimension(..), intent(in) :: buf
+            class(*), dimension(..), asynchronous, intent(in) :: buf
             integer, intent(in) :: dest, tag
             type(MPI_Comm), intent(in), optional :: comm
             type(MPI_Request), intent(out) :: request
@@ -502,7 +506,7 @@ module gb
         ! MPI standard direct wrapper
         subroutine gb_irecv_standard(buf, count, datatype, source, tag, comm, request, ierror)
             use mpi_f08
-            type(*), dimension(..) :: buf
+            type(*), dimension(..), asynchronous :: buf
             integer, intent(in) :: count, source, tag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -517,7 +521,7 @@ module gb
 
         subroutine gb_irecv_inferred(buf, source, tag, comm, request, ierror)
             use mpi_f08
-            class(*), dimension(..) :: buf
+            class(*), dimension(..), asynchronous :: buf
             integer, intent(in) :: source, tag
             type(MPI_Comm), intent(in), optional :: comm
             type(MPI_Request), intent(out) :: request
