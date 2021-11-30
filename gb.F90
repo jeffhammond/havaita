@@ -193,6 +193,101 @@ module gb
         end subroutine
 
         ! MPI standard direct wrapper
+        subroutine gb_reduce_standard(sendbuf, recvbuf, count, datatype, op, root, comm, ierror)
+            use mpi_f08
+            type(*), dimension(..), intent(in) :: sendbuf
+            type(*), dimension(..)             :: recvbuf
+            integer, intent(in) :: count
+            integer, intent(in), optional :: root
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            if (present(root)) then
+                if (present(ierror)) then
+                    call mpi_reduce(sendbuf, recvbuf, count, datatype, op, root, comm, ierror)
+                else
+                    call mpi_reduce(sendbuf, recvbuf, count, datatype, op, root, comm)
+                endif
+            else
+                if (present(ierror)) then
+                    call mpi_allreduce(sendbuf, recvbuf, count, datatype, op, comm, ierror)
+                else
+                    call mpi_allreduce(sendbuf, recvbuf, count, datatype, op, comm)
+                endif
+            endif
+        end subroutine
+
+        subroutine gb_reduce_inferred(sendbuf, recvbuf, op, root, comm, ierror)
+            use mpi_f08
+            class(*), dimension(..), intent(in), optional :: sendbuf
+            class(*), dimension(..)                       :: recvbuf
+            type(MPI_Op), intent(in), optional :: op
+            integer, intent(in), optional :: root
+            type(MPI_Comm), intent(in), optional :: comm
+            integer, optional, intent(out) :: ierror
+            if (present(ierror)) then
+                if (present(sendbuf)) then
+                    call contiguous_buffer_check(sendbuf,ierror)
+                endif
+                call contiguous_buffer_check(recvbuf,ierror)
+            else
+                if (present(sendbuf)) then
+                    call contiguous_buffer_check(sendbuf)
+                endif
+                call contiguous_buffer_check(recvbuf)
+            endif
+            block
+                type(MPI_Op) :: xop
+                type(MPI_Comm) :: xcomm
+                type(MPI_Status) :: xstatus
+                integer :: count
+                type(MPI_Datatype) :: datatype
+                if (present(op)) then
+                    xop = op
+                else
+                    xop = MPI_SUM
+                endif
+                if (present(comm)) then
+                    xcomm = comm
+                else
+                    xcomm = MPI_COMM_WORLD
+                endif
+                count = size(recvbuf)
+                datatype = get_mpi_datatype_array(recvbuf)
+                if (present(root)) then
+                    if (present(ierror)) then
+                        if (present(sendbuf)) then
+                            call mpi_reduce(sendbuf, recvbuf, count, datatype, op, root, comm, ierror)
+                        else
+                            call mpi_reduce(MPI_IN_PLACE, recvbuf, count, datatype, op, root, comm, ierror)
+                        endif
+                    else
+                        if (present(sendbuf)) then
+                            call mpi_reduce(sendbuf, recvbuf, count, datatype, op, root, comm)
+                        else
+                            call mpi_reduce(MPI_IN_PLACE, recvbuf, count, datatype, op, root, comm)
+                        endif
+                    endif
+                else
+                    if (present(ierror)) then
+                        if (present(sendbuf)) then
+                            call mpi_allreduce(sendbuf, recvbuf, count, datatype, op, comm, ierror)
+                        else
+                            call mpi_allreduce(MPI_IN_PLACE, recvbuf, count, datatype, op, comm, ierror)
+                        endif
+                    else
+                        if (present(sendbuf)) then
+                            call mpi_allreduce(sendbuf, recvbuf, count, datatype, op, comm)
+                        else
+                            call mpi_allreduce(MPI_IN_PLACE, recvbuf, count, datatype, op, comm)
+                        endif
+                    endif
+                endif
+            end block
+        end subroutine
+
+        ! MPI standard direct wrapper
         subroutine gb_sendrecv_standard(sendbuf, sendcount, sendtype, dest, sendtag,        &
                                         recvbuf, recvcount, recvtype, source, recvtag,      &
                                         comm, status, ierror)
