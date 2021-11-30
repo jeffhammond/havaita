@@ -8,6 +8,11 @@ module gb
         module procedure gb_bcast_inferred
     end interface
 
+    interface gb_reduce
+        module procedure gb_reduce_standard
+        module procedure gb_reduce_inferred
+    end interface
+
     interface gb_sendrecv
         module procedure gb_sendrecv_standard
         module procedure gb_sendrecv_inferred
