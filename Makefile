@@ -21,5 +21,6 @@ test: test.F90 gb.o
 clean:
 	-rm -f *.o
 	-rm -f *.x
-	-rm -f gb.mod
+	-rm -f *.mod
 	-rm -f test
+	-rm -rf *.dSYM
