@@ -1,12 +1,14 @@
-FC=mpifort
+FC:=mpifort
+FFLAGS:=
 
 # GCC: use ENABLE_SELECT_RANK, otherwise it does not work
-# Intel: do not use ENABLE_SELECT_RANK; ENABLE_8D_ARRAYS and ENABLE_15D_ARRAYS are okay, but does not work anyways
+# Cray: use ENABLE_SELECT_RANK, but it also works without and using ENABLE_8D_ARRAYS and ENABLE_15D_ARRAYS
 # NV/PGI: do not use ENABLE_SELECT_RANK, ENABLE_8D_ARRAYS or ENABLE_15D_ARRAYS 
+# Intel: do not use ENABLE_SELECT_RANK; ENABLE_8D_ARRAYS and ENABLE_15D_ARRAYS are okay, but does not work anyways
 
-FFLAGS=-DENABLE_SELECT_RANK
-#FFLAGS=-DENABLE_8D_ARRAYS
-#FFLAGS=-DENABLE_15D_ARRAYS
+#FFLAGS+=-DENABLE_SELECT_RANK
+FFLAGS+=-DENABLE_8D_ARRAYS
+FFLAGS+=-DENABLE_15D_ARRAYS
 
 all: test
 
