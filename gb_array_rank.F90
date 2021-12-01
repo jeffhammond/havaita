@@ -11,6 +11,7 @@ module gb_array_rank
         module procedure get_array_d5
         module procedure get_array_d6
         module procedure get_array_d7
+#if ENABLE_FORTRAN2008_ARRAYS
         module procedure get_array_d8
         module procedure get_array_d9
         module procedure get_array_d10
@@ -20,6 +21,7 @@ module gb_array_rank
         module procedure get_array_d14
 #if ENABLE_15D_ARRAYS
         module procedure get_array_d15
+#endif
 #endif
     end interface
 
@@ -73,6 +75,7 @@ module gb_array_rank
             d = 7
         end function
 
+#if ENABLE_FORTRAN2008_ARRAYS
         function get_array_d8(buffer) result(d)
             class(*), dimension(:,:,:,:,:,:,:,:), intent(in) :: buffer
             integer :: d
@@ -123,6 +126,7 @@ module gb_array_rank
             integer :: d
             d = 15
         end function
+#endif
 #endif
 
 end module gb_array_rank
