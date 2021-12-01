@@ -2,7 +2,8 @@ program test
   use gb
   implicit none
   integer :: me, np
-  type(MPI_Comm), parameter :: world = MPI_COMM_WORLD
+  type(MPI_Comm) :: world
+  world = MPI_COMM_WORLD
 
   call MPI_Init()
   call MPI_Comm_rank(world,me)

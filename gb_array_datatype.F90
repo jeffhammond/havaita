@@ -126,7 +126,7 @@ module gb_array_datatype
             datatype = get_element_datatype(buffer(1,1,1,1,1,1,1))
         end function
 
-#if ENABLE_FORTRAN2008_ARRAYS
+#if ENABLE_8D_ARRAYS
         function get_array_datatype_d8(buffer) result(datatype)
             class(*), dimension(:,:,:,:,:,:,:,:), intent(in) :: buffer
             type(MPI_Datatype) :: datatype
