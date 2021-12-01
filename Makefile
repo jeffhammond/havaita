@@ -1,5 +1,5 @@
 FC=mpifort
-FFLAGS=-g -Os -std=f2018
+FFLAGS=
 
 all: test
 
@@ -9,19 +9,19 @@ all: test
 %.x: %.o
 	$(FC) $(FFLAGS) $^ -o $@
 
-#gb.mod: gb.F90
-#	$(FC) $(FFLAGS) -c $<
-
-gb_array_rank.o: gb_array_rank.F90
+gb_element_datatype.o: gb_element_datatype.F90
 	$(FC) $(FFLAGS) -c $<
 
-gb_util.o: gb_util.F90 gb_array_rank.o
+gb_array_datatype.o: gb_array_datatype.F90 gb_element_datatype.o
+	$(FC) $(FFLAGS) -c $<
+
+gb_util.o: gb_util.F90 gb_array_datatype.o
 	$(FC) $(FFLAGS) -c $<
 
 gb.o: gb.F90 gb_util.o
 	$(FC) $(FFLAGS) -c $<
 
-test: test.F90 gb.o gb_util.o gb_array_rank.o
+test: test.F90 gb.o gb_util.o gb_array_datatype.o gb_element_datatype.o
 	$(FC) $(FFLAGS) $^ -o $@
 
 clean:

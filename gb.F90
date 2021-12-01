@@ -79,7 +79,7 @@ module gb
                 else
                     xroot = 0
                 endif
-                dt = get_mpi_datatype_array(buffer)
+                dt = get_element_datatype_array(buffer)
                 if (present(ierror)) then
                     call MPI_Bcast(buffer, size(buffer), dt, xroot, xcomm, ierror)
                 else
@@ -138,7 +138,7 @@ module gb
                 integer :: count
                 type(MPI_Datatype) :: datatype
                 count = size(recvbuf)
-                datatype = get_mpi_datatype_array(recvbuf)
+                datatype = get_element_datatype_array(recvbuf)
                 if (present(op)) then
                     xop = op
                 else
@@ -237,8 +237,8 @@ module gb
                 else
                     xstatus = MPI_STATUS_IGNORE
                 endif
-                sendtype = get_mpi_datatype_array(sendbuf)
-                recvtype = get_mpi_datatype_array(recvbuf)
+                sendtype = get_element_datatype_array(sendbuf)
+                recvtype = get_element_datatype_array(recvbuf)
                 if (present(ierror)) then
                     call mpi_sendrecv(sendbuf, size(sendbuf), sendtype, dest, sendtag,      &
                                       recvbuf, size(recvbuf), recvtype, source, recvtag,    &
@@ -283,7 +283,7 @@ module gb
                 else
                     xcomm = MPI_COMM_WORLD
                 endif
-                datatype = get_mpi_datatype_array(buf)
+                datatype = get_element_datatype_array(buf)
                 if (present(ierror)) then
                     call mpi_send(buf, size(buf), datatype, dest, tag, xcomm, ierror)
                 else
@@ -332,7 +332,7 @@ module gb
                 else
                     xstatus = MPI_STATUS_IGNORE
                 endif
-                datatype = get_mpi_datatype_array(buf)
+                datatype = get_element_datatype_array(buf)
                 if (present(ierror)) then
                     call mpi_recv(buf, size(buf), datatype, source, tag, xcomm, xstatus, ierror)
                 else
@@ -375,7 +375,7 @@ module gb
                 else
                     xcomm = MPI_COMM_WORLD
                 endif
-                datatype = get_mpi_datatype_array(buf)
+                datatype = get_element_datatype_array(buf)
                 if (present(ierror)) then
                     call mpi_isend(buf, size(buf), datatype, dest, tag, xcomm, request, ierror)
                 else
@@ -418,7 +418,7 @@ module gb
                 else
                     xcomm = MPI_COMM_WORLD
                 endif
-                datatype = get_mpi_datatype_array(buf)
+                datatype = get_element_datatype_array(buf)
                 if (present(ierror)) then
                     call mpi_irecv(buf, size(buf), datatype, source, tag, xcomm, request, ierror)
                 else

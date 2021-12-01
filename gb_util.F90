@@ -1,13 +1,11 @@
 module gb_util
     use iso_fortran_env
     use mpi_f08
-    use gb_array_rank
     implicit none
 
     contains
 
         subroutine contiguous_buffer_check(buffer,ierror)
-            use mpi_f08
             class(*), DIMENSION(..), intent(in) :: buffer
             integer, optional, intent(out) :: ierror
             if (.not.MPI_SUBARRAYS_SUPPORTED) then
@@ -23,95 +21,5 @@ module gb_util
                 endif
             endif
         end subroutine
-
-        function get_mpi_datatype(element) result(datatype)
-            use mpi_f08
-            class(*) :: element
-            type(MPI_Datatype) :: datatype
-            select type(element)
-                !    datatype = MPI_REAL
-                type is ( real(kind=REAL32) )
-                    datatype = MPI_REAL4
-                type is ( real(kind=REAL64) )
-                    datatype = MPI_REAL8
-#ifdef ENABLE_128B_TYPES
-                type is ( real(kind=REAL128) )
-                    datatype = MPI_REAL16
-#endif
-                ! COMPLEX types
-                type is ( complex(kind=REAL32) )
-                    datatype = MPI_COMPLEX8
-                type is ( complex(kind=REAL64) )
-                    datatype = MPI_COMPLEX16
-#ifdef ENABLE_128B_TYPES
-                type is ( complex(kind=REAL128) )
-                    datatype = MPI_COMPLEX32
-#endif
-                ! INTEGER types
-                type is ( integer(kind=INT8) )
-                    datatype = MPI_INTEGER1
-                type is ( integer(kind=INT16) )
-                    datatype = MPI_INTEGER2
-                type is ( integer(kind=INT32) )
-                    datatype = MPI_INTEGER4
-                type is ( integer(kind=INT64) )
-                    datatype = MPI_INTEGER8
-#ifdef ENABLE_128B_TYPES
-                type is ( integer(kind=INT128) )
-                    datatype = MPI_INTEGER16
-#endif
-                ! OTHER types
-                type is ( logical )
-                    datatype = MPI_LOGICAL
-                ! character is omitted because i cannot make it work
-                ! MPI types - these overlap with integer types above
-                !type is ( integer(kind=MPI_ADDRESS_KIND) )
-                !    datatype = MPI_AINT
-                !type is ( integer(kind=MPI_OFFSET_KIND) )
-                !    datatype = MPI_OFFSET
-                !type is ( integer(kind=MPI_COUNT_KIND) )
-                !    datatype = MPI_COUNT
-            end select
-        end function
-
-        function get_mpi_datatype_array(buffer) result(datatype)
-            use mpi_f08
-            class(*), DIMENSION(..) :: buffer
-            type(MPI_Datatype) :: datatype
-            select rank (buffer)
-                rank(0)
-                    datatype = get_mpi_datatype(buffer)
-                rank(1)
-                    datatype = get_mpi_datatype(buffer(1))
-                rank(2)
-                    datatype = get_mpi_datatype(buffer(1,1))
-                rank(3)
-                    datatype = get_mpi_datatype(buffer(1,1,1))
-                rank(4)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1))
-                rank(5)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1))
-                rank(6)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1))
-                rank(7)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1))
-                rank(8)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1))
-                rank(9)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1))
-                rank(10)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1))
-                rank(11)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1))
-                rank(12)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1))
-                rank(13)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1))
-                rank(14)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1,1))
-                rank(15)
-                    datatype = get_mpi_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
-            end select
-        end function
 
 end module gb_util
