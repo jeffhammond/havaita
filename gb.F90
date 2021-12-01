@@ -145,7 +145,7 @@ module gb
                 type(MPI_Op) :: xop
                 type(MPI_Comm) :: xcomm
                 type(MPI_Status) :: xstatus
-                integer :: count
+                integer :: count, me
                 type(MPI_Datatype) :: datatype
                 count = size(recvbuf)
                 datatype = get_array_datatype(recvbuf)
@@ -166,29 +166,39 @@ module gb
                 if (present(root)) then
                     if (present(ierror)) then
                         if (present(sendbuf)) then
-                            call mpi_reduce(sendbuf, recvbuf, count, datatype, op, root, comm, ierror)
+                            call mpi_reduce(sendbuf, recvbuf, count, datatype, xop, root, xcomm, ierror)
                         else
-                            call mpi_reduce(MPI_IN_PLACE, recvbuf, count, datatype, op, root, comm, ierror)
+                            call MPI_Comm_rank(xcomm,me)
+                            if (me.eq.root) then
+                                call mpi_reduce(MPI_IN_PLACE, recvbuf, count, datatype, xop, root, xcomm, ierror)
+                            else
+                                call mpi_reduce(recvbuf, recvbuf, count, datatype, xop, root, xcomm, ierror)
+                            endif
                         endif
                     else
                         if (present(sendbuf)) then
-                            call mpi_reduce(sendbuf, recvbuf, count, datatype, op, root, comm)
+                            call mpi_reduce(sendbuf, recvbuf, count, datatype, xop, root, xcomm)
                         else
-                            call mpi_reduce(MPI_IN_PLACE, recvbuf, count, datatype, op, root, comm)
+                            call MPI_Comm_rank(xcomm,me)
+                            if (me.eq.root) then
+                                call mpi_reduce(MPI_IN_PLACE, recvbuf, count, datatype, xop, root, xcomm)
+                            else
+                                call mpi_reduce(recvbuf, recvbuf, count, datatype, xop, root, xcomm)
+                            endif
                         endif
                     endif
                 else ! no root => allreduce
                     if (present(ierror)) then
                         if (present(sendbuf)) then
-                            call mpi_allreduce(sendbuf, recvbuf, count, datatype, op, comm, ierror)
+                            call mpi_allreduce(sendbuf, recvbuf, count, datatype, xop, xcomm, ierror)
                         else
-                            call mpi_allreduce(MPI_IN_PLACE, recvbuf, count, datatype, op, comm, ierror)
+                            call mpi_allreduce(MPI_IN_PLACE, recvbuf, count, datatype, xop, xcomm, ierror)
                         endif
                     else
                         if (present(sendbuf)) then
-                            call mpi_allreduce(sendbuf, recvbuf, count, datatype, op, comm)
+                            call mpi_allreduce(sendbuf, recvbuf, count, datatype, xop, xcomm)
                         else
-                            call mpi_allreduce(MPI_IN_PLACE, recvbuf, count, datatype, op, comm)
+                            call mpi_allreduce(MPI_IN_PLACE, recvbuf, count, datatype, xop, xcomm)
                         endif
                     endif
                 endif

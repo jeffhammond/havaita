@@ -1,9 +1,10 @@
 program test
   use gb
   implicit none
-  integer :: me, np
+  integer :: me, np, root
   type(MPI_Comm) :: world
   world = MPI_COMM_WORLD
+  root = 0
 
   call MPI_Init()
   call MPI_Comm_rank(world,me)
@@ -59,9 +60,227 @@ program test
     call gb_bcast(buffer=a3)
     if (any(a3 .ne. 0.0d0)) STOP
 
-    call MPI_Barrier(world)
-    call gb_bcast(a2(1:5,1:5),0,world,ierr)
-    write(*,*) 'gb_bcast XFAIL',ierr
+    !call MPI_Barrier(world)
+    !call gb_bcast(a2(1:5,1:5),0,world,ierr)
+    !if (ierr.ne.MPI_SUCCESS) write(*,*) 'gb_bcast XFAIL',ierr
+  end block
+
+  block
+    real(kind=REAL64) :: a(100)  , b(100)
+    real :: ref
+    integer :: ierr
+
+    ref = (np-1.0d0) * (0.5d0*np)
+
+    ! 1D
+    a = me
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,root=0,comm=MPI_COMM_WORLD)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,comm=MPI_COMM_WORLD)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,root=0)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,root=0,comm=MPI_COMM_WORLD)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,root=0)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,comm=MPI_COMM_WORLD)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,root=0,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,root=0,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,root=0,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,root=0,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,root=0,comm=MPI_COMM_WORLD)
+    if (me.eq.root .and. any(b .ne. ref)) print*,b,ref
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,comm=MPI_COMM_WORLD)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,root=0)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,root=0,comm=MPI_COMM_WORLD)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,root=0)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,comm=MPI_COMM_WORLD)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,root=0,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,root=0,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,root=0,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,root=0,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    write(*,*) 'gb_reduce 1D passed'
+  end block
+
+  block
+    real(kind=REAL64) :: a(10,10)  , b(10,10)
+    real :: ref
+    integer :: ierr
+
+    ref = (np-1.0d0) * (0.5d0*np)
+
+    ! 1D
+    a = me
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,root=0,comm=MPI_COMM_WORLD)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,comm=MPI_COMM_WORLD)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,root=0)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,root=0,comm=MPI_COMM_WORLD)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,root=0)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,comm=MPI_COMM_WORLD)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,root=0,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,root=0,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,root=0,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,root=0,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,op=MPI_SUM,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = 0
+    call gb_reduce(sendbuf=a,recvbuf=b,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,root=0,comm=MPI_COMM_WORLD)
+    if (me.eq.root .and. any(b .ne. ref)) print*,b,ref
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,comm=MPI_COMM_WORLD)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,root=0)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,root=0,comm=MPI_COMM_WORLD)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,root=0)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,comm=MPI_COMM_WORLD)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,root=0,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,root=0,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,root=0,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,root=0,ierror=ierr)
+    if (me.eq.root .and. any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,comm=MPI_COMM_WORLD,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,op=MPI_SUM,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    b = me
+    call gb_reduce(recvbuf=b,ierror=ierr)
+    if (any(b .ne. ref)) STOP
+    write(*,*) 'gb_reduce 2D passed'
   end block
 
   call MPI_Finalize()
