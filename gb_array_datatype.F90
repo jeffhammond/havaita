@@ -13,7 +13,7 @@ module gb_array_datatype
     contains
 
         function get_array_datatype_all(buffer) result(datatype)
-            class(*), DIMENSION(..), intent(in) :: buffer
+            class(*), dimension(..), intent(in) :: buffer
             type(MPI_Datatype) :: datatype
             select rank (buffer)
                 rank(0)
@@ -170,7 +170,7 @@ module gb_array_datatype
         end function
 
 #if ENABLE_15D_ARRAYS
-        ! GCC 11 does not like this
+        ! GCC 11 does not like this (sometimes)
         function get_array_datatype_d15(buffer) result(datatype)
             class(*), dimension(:,:,:,:,:,:,:,:,:,:,:,:,:,:,:), intent(in) :: buffer
             !                   1 2 3 4 5 6 7 8 9 A B C D E F
