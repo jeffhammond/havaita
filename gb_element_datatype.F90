@@ -9,7 +9,7 @@ module gb_element_datatype
             class(*), intent(in) :: element
             type(MPI_Datatype) :: datatype
             select type(element)
-                !    datatype = MPI_REAL
+                ! REAL types
                 type is ( real(kind=REAL32) )
                     datatype = MPI_REAL4
                 type is ( real(kind=REAL64) )
