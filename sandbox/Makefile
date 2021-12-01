@@ -1,5 +1,5 @@
-FC=mpifort
-FFLAGS=
+FC:=ifort
+FFLAGS:=
 
 all: array.x pgi.o fortran.x type-class.x
 
