@@ -4,12 +4,15 @@ module gb_array_datatype
     use gb_element_datatype
     implicit none
 
-#ifdef ENABLE_FORTRAN2018
+#ifdef ENABLE_SELECT_RANK
+
+    interface get_array_datatype
+        module procedure get_array_datatype_all
+    end interface
 
     contains
 
-        function get_array_datatype(buffer) result(datatype)
-            use gb_element_datatype
+        function get_array_datatype_all(buffer) result(datatype)
             class(*), DIMENSION(..), intent(in) :: buffer
             type(MPI_Datatype) :: datatype
             select rank (buffer)
@@ -59,6 +62,18 @@ module gb_array_datatype
         module procedure get_array_datatype_d5
         module procedure get_array_datatype_d6
         module procedure get_array_datatype_d7
+#ifdef ENABLE_8D_ARRAYS
+        module procedure get_array_datatype_d8
+        module procedure get_array_datatype_d9
+        module procedure get_array_datatype_d10
+        module procedure get_array_datatype_d11
+        module procedure get_array_datatype_d12
+        module procedure get_array_datatype_d13
+        module procedure get_array_datatype_d14
+#ifdef ENABLE_15D_ARRAYS
+        module procedure get_array_datatype_d15
+#endif
+#endif
     end interface
 
     contains
@@ -110,6 +125,61 @@ module gb_array_datatype
             type(MPI_Datatype) :: datatype
             datatype = get_element_datatype(buffer(1,1,1,1,1,1,1))
         end function
-#endif
+
+#if ENABLE_FORTRAN2008_ARRAYS
+        function get_array_datatype_d8(buffer) result(datatype)
+            class(*), dimension(:,:,:,:,:,:,:,:), intent(in) :: buffer
+            type(MPI_Datatype) :: datatype
+            datatype = get_element_datatype(buffer(1,1,1,1,1,1,1,1))
+        end function
+
+        function get_array_datatype_d9(buffer) result(datatype)
+            class(*), dimension(:,:,:,:,:,:,:,:,:), intent(in) :: buffer
+            type(MPI_Datatype) :: datatype
+            datatype = get_element_datatype(buffer(1,1,1,1,1,1,1,1,1))
+        end function
+
+        function get_array_datatype_d10(buffer) result(datatype)
+            class(*), dimension(:,:,:,:,:,:,:,:,:,:), intent(in) :: buffer
+            type(MPI_Datatype) :: datatype
+            datatype = get_element_datatype(buffer(1,1,1,1,1,1,1,1,1,1))
+        end function
+
+        function get_array_datatype_d11(buffer) result(datatype)
+            class(*), dimension(:,:,:,:,:,:,:,:,:,:,:), intent(in) :: buffer
+            type(MPI_Datatype) :: datatype
+            datatype = get_element_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1))
+        end function
+
+        function get_array_datatype_d12(buffer) result(datatype)
+            class(*), dimension(:,:,:,:,:,:,:,:,:,:,:,:), intent(in) :: buffer
+            type(MPI_Datatype) :: datatype
+            datatype = get_element_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1))
+        end function
+
+        function get_array_datatype_d13(buffer) result(datatype)
+            class(*), dimension(:,:,:,:,:,:,:,:,:,:,:,:,:), intent(in) :: buffer
+            type(MPI_Datatype) :: datatype
+            datatype = get_element_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1))
+        end function
+
+        function get_array_datatype_d14(buffer) result(datatype)
+            class(*), dimension(:,:,:,:,:,:,:,:,:,:,:,:,:,:), intent(in) :: buffer
+            type(MPI_Datatype) :: datatype
+            datatype = get_element_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1,1))
+        end function
+
+#if ENABLE_15D_ARRAYS
+        ! GCC 11 does not like this
+        function get_array_datatype_d15(buffer) result(datatype)
+            class(*), dimension(:,:,:,:,:,:,:,:,:,:,:,:,:,:,:), intent(in) :: buffer
+            !                   1 2 3 4 5 6 7 8 9 A B C D E F
+            type(MPI_Datatype) :: datatype
+            datatype = get_element_datatype(buffer(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
+        end function
+#endif ! ENABLE_15D_ARRAYS
+#endif ! ENABLE_8D_ARRAYS
+
+#endif ! ENABLE_SELECT_RANK
 
 end module gb_array_datatype
