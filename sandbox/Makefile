@@ -1,7 +1,7 @@
 FC:=ifort
 FFLAGS:=
 
-all: array.x pgi.o fortran.x type-class.x
+all: array.x pgi.o fortran.x type-class.x type.o
 
 %.o: %.F90
 	$(FC) $(FFLAGS) -c $^ -o $@

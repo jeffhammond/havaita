@@ -16,8 +16,10 @@ module gb_array_datatype
             class(*), dimension(..), intent(in) :: buffer
             type(MPI_Datatype) :: datatype
             select rank (buffer)
+#if ! defined(__INTEL_COMPILER)
                 rank(0)
                     datatype = get_element_datatype(buffer)
+#endif
                 rank(1)
                     datatype = get_element_datatype(buffer(1))
                 rank(2)

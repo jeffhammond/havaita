@@ -7,9 +7,11 @@ module gb
 
     interface gb_bcast
         module procedure gb_bcast_standard
+        module procedure gb_bcast_pointer
         module procedure gb_bcast_inferred
     end interface
 
+#if 0
     interface gb_reduce
         module procedure gb_reduce_standard
         module procedure gb_reduce_inferred
@@ -39,16 +41,13 @@ module gb
         module procedure gb_irecv_standard
         module procedure gb_irecv_inferred
     end interface
+#endif
 
     contains
 
         ! MPI standard direct wrapper
         subroutine gb_bcast_standard(buffer, count, datatype, root, comm, ierror)
-#ifdef __PGI
-            class(*), dimension(..) :: buffer
-#else
             type(*), dimension(..) :: buffer
-#endif
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -57,6 +56,21 @@ module gb
                 call mpi_bcast(buffer, count, datatype, root, comm, ierror)
             else
                 call mpi_bcast(buffer, count, datatype, root, comm)
+            endif
+        end subroutine
+
+        subroutine gb_bcast_pointer(buffer, count, datatype, root, comm, ierror)
+            class(*), dimension(..), target :: buffer
+            type(*), dimension(..), pointer :: ptr
+            integer, intent(in) :: count, root
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            ptr => buffer
+            if (present(ierror)) then
+                call mpi_bcast(ptr, count, datatype, root, comm, ierror)
+            else
+                call mpi_bcast(ptr, count, datatype, root, comm)
             endif
         end subroutine
 
@@ -86,22 +100,18 @@ module gb
                 endif
                 datatype = get_array_datatype(buffer)
                 if (present(ierror)) then
-                    call MPI_Bcast(buffer, size(buffer), datatype, xroot, xcomm, ierror)
+                    call mpi_bcast(buffer, size(buffer), datatype, xroot, xcomm, ierror)
                 else
-                    call MPI_Bcast(buffer, size(buffer), datatype, xroot, xcomm)
+                    call mpi_bcast(buffer, size(buffer), datatype, xroot, xcomm)
                 endif
             end block
         end subroutine
 
+#if 0
         ! MPI standard direct wrapper
         subroutine gb_reduce_standard(sendbuf, recvbuf, count, datatype, op, root, comm, ierror)
-#ifdef __PGI
             class(*), dimension(..), intent(in) :: sendbuf
             class(*), dimension(..)             :: recvbuf
-#else
-            type(*), dimension(..), intent(in) :: sendbuf
-            type(*), dimension(..)             :: recvbuf
-#endif
             integer, intent(in) :: count
             integer, intent(in), optional :: root
             type(MPI_Datatype), intent(in) :: datatype
@@ -199,13 +209,8 @@ module gb
         subroutine gb_sendrecv_standard(sendbuf, sendcount, sendtype, dest, sendtag,        &
                                         recvbuf, recvcount, recvtype, source, recvtag,      &
                                         comm, status, ierror)
-#ifdef __PGI
             class(*), dimension(..), intent(in) :: sendbuf
             class(*), dimension(..)             :: recvbuf
-#else
-            type(*), dimension(..), intent(in) :: sendbuf
-            type(*), dimension(..)             :: recvbuf
-#endif
             integer, intent(in) :: sendcount, dest, sendtag, recvcount, source, recvtag
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -268,11 +273,7 @@ module gb
 
         ! MPI standard direct wrapper
         subroutine gb_send_standard(buf, count, datatype, dest, tag, comm, ierror)
-#ifdef __PGI
             class(*), dimension(..), intent(in) :: buf
-#else
-            type(*), dimension(..), intent(in) :: buf
-#endif
             integer, intent(in) :: count, dest, tag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -313,11 +314,7 @@ module gb
 
         ! MPI standard direct wrapper
         subroutine gb_recv_standard(buf, count, datatype, source, tag, comm, status, ierror)
-#ifdef __PGI
             class(*), dimension(..), intent(in) :: buf
-#else
-            type(*), dimension(..), intent(in) :: buf
-#endif
             integer, intent(in) :: count, source, tag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -366,11 +363,7 @@ module gb
 
         ! MPI standard direct wrapper
         subroutine gb_isend_standard(buf, count, datatype, dest, tag, comm, request, ierror)
-#ifdef __PGI
             class(*), dimension(..), asynchronous, intent(in) :: buf
-#else
-            type(*), dimension(..), asynchronous, intent(in) :: buf
-#endif
             integer, intent(in) :: count, dest, tag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -413,11 +406,7 @@ module gb
 
         ! MPI standard direct wrapper
         subroutine gb_irecv_standard(buf, count, datatype, source, tag, comm, request, ierror)
-#ifdef __PGI
             class(*), dimension(..), asynchronous, intent(in) :: buf
-#else
-            type(*), dimension(..), asynchronous, intent(in) :: buf
-#endif
             integer, intent(in) :: count, source, tag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -457,5 +446,6 @@ module gb
                 endif
             end block
         end subroutine
+#endif
 
 end module gb
