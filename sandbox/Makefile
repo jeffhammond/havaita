@@ -1,7 +1,7 @@
 FC=mpifort
 FFLAGS=
 
-all: array.x pgi.o fortran.x
+all: array.x pgi.o fortran.x type-class.x
 
 %.o: %.F90
 	$(FC) $(FFLAGS) -c $^ -o $@
